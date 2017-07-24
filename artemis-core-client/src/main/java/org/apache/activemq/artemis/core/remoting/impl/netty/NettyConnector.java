@@ -116,6 +116,7 @@ public class NettyConnector extends AbstractConnector {
    public static final String ACTIVEMQ_TRUSTSTORE_PROVIDER_PROP_NAME = "org.apache.activemq.ssl.trustStoreProvider";
    public static final String ACTIVEMQ_TRUSTSTORE_PATH_PROP_NAME = "org.apache.activemq.ssl.trustStore";
    public static final String ACTIVEMQ_TRUSTSTORE_PASSWORD_PROP_NAME = "org.apache.activemq.ssl.trustStorePassword";
+   public static final String ACTIVEMQ_USE_DEFAULT_SSL_CONTEXT_PROP_NAME= "org.apache.activemq.ssl.useDefaultSslContext";
 
    // Constants for HTTP upgrade
    // These constants are exposed publicly as they are used on the server-side to fetch
@@ -395,47 +396,51 @@ public class NettyConnector extends AbstractConnector {
       final SSLContext context;
       if (sslEnabled) {
          try {
-            // HORNETQ-680 - override the server-side config if client-side system properties are set
-            String realKeyStorePath = keyStorePath;
-            String realKeyStoreProvider = keyStoreProvider;
-            String realKeyStorePassword = keyStorePassword;
-            if (System.getProperty(JAVAX_KEYSTORE_PATH_PROP_NAME) != null) {
-               realKeyStorePath = System.getProperty(JAVAX_KEYSTORE_PATH_PROP_NAME);
-            }
-            if (System.getProperty(JAVAX_KEYSTORE_PASSWORD_PROP_NAME) != null) {
-               realKeyStorePassword = System.getProperty(JAVAX_KEYSTORE_PASSWORD_PROP_NAME);
-            }
+            if (System.getProperty(ACTIVEMQ_USE_DEFAULT_SSL_CONTEXT_PROP_NAME) != null){
+               context = SSLContext.getDefault();
+            }else {
+               // HORNETQ-680 - override the server-side config if client-side system properties are set
+               String realKeyStorePath = keyStorePath;
+               String realKeyStoreProvider = keyStoreProvider;
+               String realKeyStorePassword = keyStorePassword;
+               if (System.getProperty(JAVAX_KEYSTORE_PATH_PROP_NAME) != null) {
+                  realKeyStorePath = System.getProperty(JAVAX_KEYSTORE_PATH_PROP_NAME);
+               }
+               if (System.getProperty(JAVAX_KEYSTORE_PASSWORD_PROP_NAME) != null) {
+                  realKeyStorePassword = System.getProperty(JAVAX_KEYSTORE_PASSWORD_PROP_NAME);
+               }
 
-            if (System.getProperty(ACTIVEMQ_KEYSTORE_PROVIDER_PROP_NAME) != null) {
-               realKeyStoreProvider = System.getProperty(ACTIVEMQ_KEYSTORE_PROVIDER_PROP_NAME);
-            }
-            if (System.getProperty(ACTIVEMQ_KEYSTORE_PATH_PROP_NAME) != null) {
-               realKeyStorePath = System.getProperty(ACTIVEMQ_KEYSTORE_PATH_PROP_NAME);
-            }
-            if (System.getProperty(ACTIVEMQ_KEYSTORE_PASSWORD_PROP_NAME) != null) {
-               realKeyStorePassword = System.getProperty(ACTIVEMQ_KEYSTORE_PASSWORD_PROP_NAME);
-            }
+               if (System.getProperty(ACTIVEMQ_KEYSTORE_PROVIDER_PROP_NAME) != null) {
+                  realKeyStoreProvider = System.getProperty(ACTIVEMQ_KEYSTORE_PROVIDER_PROP_NAME);
+               }
+               if (System.getProperty(ACTIVEMQ_KEYSTORE_PATH_PROP_NAME) != null) {
+                  realKeyStorePath = System.getProperty(ACTIVEMQ_KEYSTORE_PATH_PROP_NAME);
+               }
+               if (System.getProperty(ACTIVEMQ_KEYSTORE_PASSWORD_PROP_NAME) != null) {
+                  realKeyStorePassword = System.getProperty(ACTIVEMQ_KEYSTORE_PASSWORD_PROP_NAME);
+               }
 
-            String realTrustStorePath = trustStorePath;
-            String realTrustStoreProvider = trustStoreProvider;
-            String realTrustStorePassword = trustStorePassword;
-            if (System.getProperty(JAVAX_TRUSTSTORE_PATH_PROP_NAME) != null) {
-               realTrustStorePath = System.getProperty(JAVAX_TRUSTSTORE_PATH_PROP_NAME);
-            }
-            if (System.getProperty(JAVAX_TRUSTSTORE_PASSWORD_PROP_NAME) != null) {
-               realTrustStorePassword = System.getProperty(JAVAX_TRUSTSTORE_PASSWORD_PROP_NAME);
-            }
+               String realTrustStorePath = trustStorePath;
+               String realTrustStoreProvider = trustStoreProvider;
+               String realTrustStorePassword = trustStorePassword;
+               if (System.getProperty(JAVAX_TRUSTSTORE_PATH_PROP_NAME) != null) {
+                  realTrustStorePath = System.getProperty(JAVAX_TRUSTSTORE_PATH_PROP_NAME);
+               }
+               if (System.getProperty(JAVAX_TRUSTSTORE_PASSWORD_PROP_NAME) != null) {
+                  realTrustStorePassword = System.getProperty(JAVAX_TRUSTSTORE_PASSWORD_PROP_NAME);
+               }
 
-            if (System.getProperty(ACTIVEMQ_TRUSTSTORE_PROVIDER_PROP_NAME) != null) {
-               realTrustStoreProvider = System.getProperty(ACTIVEMQ_TRUSTSTORE_PROVIDER_PROP_NAME);
+               if (System.getProperty(ACTIVEMQ_TRUSTSTORE_PROVIDER_PROP_NAME) != null) {
+                  realTrustStoreProvider = System.getProperty(ACTIVEMQ_TRUSTSTORE_PROVIDER_PROP_NAME);
+               }
+               if (System.getProperty(ACTIVEMQ_TRUSTSTORE_PATH_PROP_NAME) != null) {
+                  realTrustStorePath = System.getProperty(ACTIVEMQ_TRUSTSTORE_PATH_PROP_NAME);
+               }
+               if (System.getProperty(ACTIVEMQ_TRUSTSTORE_PASSWORD_PROP_NAME) != null) {
+                  realTrustStorePassword = System.getProperty(ACTIVEMQ_TRUSTSTORE_PASSWORD_PROP_NAME);
+               }
+               context = SSLSupport.createContext(realKeyStoreProvider, realKeyStorePath, realKeyStorePassword, realTrustStoreProvider, realTrustStorePath, realTrustStorePassword);
             }
-            if (System.getProperty(ACTIVEMQ_TRUSTSTORE_PATH_PROP_NAME) != null) {
-               realTrustStorePath = System.getProperty(ACTIVEMQ_TRUSTSTORE_PATH_PROP_NAME);
-            }
-            if (System.getProperty(ACTIVEMQ_TRUSTSTORE_PASSWORD_PROP_NAME) != null) {
-               realTrustStorePassword = System.getProperty(ACTIVEMQ_TRUSTSTORE_PASSWORD_PROP_NAME);
-            }
-            context = SSLSupport.createContext(realKeyStoreProvider, realKeyStorePath, realKeyStorePassword, realTrustStoreProvider, realTrustStorePath, realTrustStorePassword);
          }
          catch (Exception e) {
             close();
